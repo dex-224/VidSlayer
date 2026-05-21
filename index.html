@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidSlayer — YouTube Creator Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Roboto:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0A;
+  --card:#141414;
+  --card2:#1A1A1A;
+  --border:rgba(255,255,255,0.5);
+  --text:#F5F5F0;
+  --muted:#666655;
+  --purple:#F97316;
+  --purple-dim:#EA6A00;
+  --purple-glow:rgba(249,115,22,0.14);
+  --green:#F5C518;
+  --green-glow:rgba(245,197,24,0.12);
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Roboto',sans-serif;font-weight:700;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ───────────────────────────────────── */
+header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,10,0.97);backdrop-filter:blur(16px);z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:800;letter-spacing:-.5px;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(249,115,22,.4);}
+.logo-text{color:var(--white);}
+.logo-text span{color:var(--green);}
+.badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:100px;padding:4px 12px;}
+
+/* ── HERO ─────────────────────────────────────── */
+.hero{padding:56px 28px 44px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:900px;height:700px;background:radial-gradient(ellipse,rgba(249,115,22,0.09) 0%,transparent 60%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-80px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(245,197,24,0.06) 0%,transparent 65%);pointer-events:none;}
+.hero h1{font-size:clamp(28px,5.5vw,62px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:12px;position:relative;}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--purple),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:32px;line-height:1.8;position:relative;}
+
+/* ── INPUT ────────────────────────────────────── */
+.title-box{max-width:700px;margin:0 auto 14px;position:relative;}
+.title-input-wrap{display:flex;gap:10px;align-items:stretch;}
+#main-title{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:15px;font-weight:600;padding:14px 18px;outline:none;transition:border-color .2s,box-shadow .2s;letter-spacing:-.2px;}
+#main-title:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.12);}
+#main-title::placeholder{color:var(--muted);font-weight:400;}
+.gen-btn{padding:14px 26px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));color:white;border:none;border-radius:10px;font-family:'Roboto',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .1s;letter-spacing:.02em;box-shadow:0 0 20px rgba(249,115,22,.35);}
+.gen-btn:hover{opacity:.9;}
+.gen-btn:active{transform:scale(.97);}
+.gen-btn:disabled{background:#222;color:#444;cursor:not-allowed;box-shadow:none;}
+
+.title-hints{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px;}
+.hint{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:100px;padding:4px 12px;cursor:pointer;transition:all .15s;}
+.hint:hover{color:var(--text);border-color:var(--purple);background:var(--purple-glow);}
+
+/* ── PROGRESS ─────────────────────────────────── */
+.status-bar{max-width:700px;margin:14px auto 0;display:none;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;}
+.status-bar.show{display:flex;}
+.progress-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--green));border-radius:2px;transition:width .4s ease;}
+.status-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
+
+/* ── MAIN LAYOUT ──────────────────────────────── */
+.main{max-width:1180px;margin:0 auto;padding:0 28px 80px;}
+
+/* ── TITLE BAR ────────────────────────────────── */
+.title-bar{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:10px;padding:13px 18px;margin-bottom:28px;display:flex;align-items:center;gap:12px;margin-top:8px;}
+.tbar-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.tbar-title{font-size:14px;font-weight:700;flex:1;color:var(--white);}
+.tbar-score{font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:100px;font-weight:700;}
+.tbar-score.high{background:rgba(245,197,24,.12);color:#F5C518;border:1px solid rgba(245,197,24,.3);}
+.tbar-score.mid{background:rgba(249,115,22,.12);color:#F97316;border:1px solid rgba(249,115,22,.3);}
+.tbar-score.low{background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.3);}
+
+/* ── SECTION LABEL ────────────────────────────── */
+.section-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:36px;}
+.section-num{width:22px;height:22px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:white;flex-shrink:0;}
+.section-name{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--purple);text-transform:uppercase;}
+
+/* ── GRID ─────────────────────────────────────── */
+.out-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+
+/* ── CARD ─────────────────────────────────────── */
+.out-card{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:12px;overflow:hidden;transition:border-color .2s;}
+.out-card:hover{border-color:rgba(255,255,255,0.7);}
+.card-header{padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.card-icon{font-size:17px;flex-shrink:0;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex:1;color:var(--white);}
+.card-body{padding:14px 16px;}
+
+/* ── REFRESH BUTTON ───────────────────────────── */
+.refresh-btn{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  padding:4px 8px;
+  cursor:pointer;
+  border-radius:6px;
+  transition:all .2s;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  flex-shrink:0;
+}
+.refresh-btn::before{content:'↻ ';}
+.refresh-btn:hover{color:var(--purple);background:var(--purple-glow);}
+.refresh-btn.spinning{animation:spin .5s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── EMPTY STATE ──────────────────────────────── */
+.empty-state{text-align:center;padding:32px 16px;}
+.empty-icon{font-size:28px;margin-bottom:8px;opacity:.3;}
+.empty-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.6;}
+
+/* ── OUTPUT TEXT ──────────────────────────────── */
+.out-text{font-family:'DM Mono',monospace;font-size:11px;line-height:1.75;color:var(--text);white-space:pre-wrap;max-height:260px;overflow-y:auto;}
+.out-text::-webkit-scrollbar{width:3px;}
+.out-text::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── COPY BAR ─────────────────────────────────── */
+.copy-bar{display:flex;justify-content:flex-end;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.copy-btn{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;padding:5px 12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;white-space:nowrap;}
+.copy-btn:hover{color:var(--text);border-color:#444;}
+.copy-btn.ok{color:var(--green)!important;border-color:rgba(34,217,138,.5)!important;}
+
+/* ── SCORE ────────────────────────────────────── */
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.score-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:800;color:var(--purple);line-height:1;flex-shrink:0;}
+.score-bar-bg{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.22,1,.36,1);}
+.score-denom{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+
+/* ── CTR INPUT ────────────────────────────────── */
+.ctr-input-row{display:flex;gap:8px;margin-bottom:12px;}
+.ctr-input-row input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:8px 11px;outline:none;transition:border-color .2s;}
+.ctr-input-row input:focus{border-color:var(--purple);}
+.ctr-input-row button{padding:8px 14px;background:var(--purple);color:white;border:none;border-radius:7px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.ctr-input-row button:hover{opacity:.85;}
+
+/* ── TITLE CHIPS ──────────────────────────────── */
+.title-chip{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);cursor:pointer;transition:all .15s;margin-bottom:7px;line-height:1.4;}
+.title-chip:hover{border-color:var(--purple);background:var(--purple-glow);}
+.title-chip.picked{border-color:var(--purple);background:var(--purple-glow);color:var(--purple);}
+.title-chip-num{color:var(--muted);margin-right:6px;font-size:10px;}
+
+/* ── TAG CHIPS ────────────────────────────────── */
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:3px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;user-select:none;}
+.chip:hover{border-color:var(--green);color:var(--green);}
+.chip.sel{background:var(--green-glow);border-color:rgba(34,217,138,.5);color:var(--green);}
+
+/* ── PROMPT PANEL ─────────────────────────────── */
+.prompt-panel{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
+.prompt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.prompt-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.wc-row{display:flex;align-items:center;gap:8px;}
+.wc-row span{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.wc-row strong{color:var(--text);font-family:'DM Mono',monospace;}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;width:110px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--purple);border-radius:50%;cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--purple);border-radius:50%;border:none;cursor:pointer;}
+.prompt-preview{font-family:'DM Mono',monospace;font-size:10px;line-height:1.7;color:var(--muted);max-height:100px;overflow-y:auto;white-space:pre-wrap;border-top:1px solid var(--border);padding-top:10px;margin-top:6px;}
+.copy-prompt-btn{width:100%;margin-top:10px;padding:10px;background:var(--purple-glow);border:1px solid rgba(139,92,246,.4);border-radius:7px;color:var(--purple);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.copy-prompt-btn:hover{background:rgba(139,92,246,.2);border-color:var(--purple);}
+.copy-prompt-btn.ok{background:var(--green-glow);border-color:rgba(34,217,138,.4);color:var(--green);}
+
+/* ── WORD COUNTER ─────────────────────────────── */
+.wc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
+.wc-stat{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.wc-num{font-size:22px;font-weight:800;color:var(--purple);line-height:1;}
+.wc-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em;}
+textarea.wc-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;resize:vertical;outline:none;min-height:90px;transition:border-color .2s;}
+textarea.wc-input:focus{border-color:var(--purple);}
+
+footer{border-top:1px solid var(--border);padding:24px 28px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+footer strong{color:var(--purple);}
+
+@media(max-width:600px){
+  header,footer{padding:12px 16px;}
+  .hero{padding:36px 16px 28px;}
+  .main{padding:0 16px 48px;}
+  .out-grid{grid-template-columns:1fr;}
+  .hero h1{letter-spacing:-1px;}
+  .title-input-wrap{flex-direction:column;}
+}
+<style>
+/* ── DROPDOWN NAV ─────────────────────────────── */
+.dropdown{position:relative;}
+.dropdown-btn{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--text);background:var(--card);
+  border:1px solid var(--border);border-radius:100px;
+  padding:7px 16px;cursor:pointer;transition:all .2s;
+  letter-spacing:.02em;
+}
+.dropdown-btn:hover{border-color:rgba(139,92,246,.5);background:var(--card2);}
+.dropdown-btn.open{
+  border-color:var(--purple);
+  background:var(--purple-glow);
+  color:var(--purple);
+  box-shadow:0 0 14px rgba(139,92,246,.25);
+}
+.dropdown-arrow{font-size:9px;transition:transform .2s;color:var(--muted);}
+.dropdown-btn.open .dropdown-arrow{transform:rotate(180deg);color:var(--purple);}
+.dropdown-menu{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:6px;min-width:160px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  display:none;z-index:200;
+  animation:ddFade .15s ease;
+}
+@keyframes ddFade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.dropdown-menu.show{display:block;}
+.dropdown-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--muted);background:transparent;border:none;
+  border-radius:8px;padding:9px 12px;cursor:pointer;
+  transition:all .15s;text-align:left;letter-spacing:.01em;
+}
+.dropdown-item:hover{color:var(--text);background:var(--card2);}
+.dropdown-item.active{
+  color:var(--white);
+  background:linear-gradient(135deg,var(--purple),var(--purple-dim));
+}
+
+/* HOW TO USE TAB PANEL */
+#howto-panel{display:none;max-width:1180px;margin:0 auto;padding:28px 28px 80px;}
+#howto-panel.show{display:block;}
+
+/* Step layout */
+.ht-step{display:flex;gap:22px;padding-bottom:36px;position:relative;}
+.ht-step:last-child{padding-bottom:0;}
+.ht-step:not(:last-child)::before{content:'';position:absolute;left:19px;top:42px;bottom:0;width:2px;background:linear-gradient(180deg,rgba(139,92,246,.3),rgba(139,92,246,.03));}
+.ht-num{width:40px;height:40px;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white;box-shadow:0 0 18px rgba(139,92,246,.28);}
+.ht-body{flex:1;padding-top:8px;}
+
+/* Labels & text — match section-label and out-text */
+.ht-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;}
+.ht-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:9px;color:var(--white);}
+.ht-desc{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.85;margin-bottom:14px;}
+
+/* Cards — match .out-card exactly */
+.ht-card{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:12px;overflow:hidden;margin-bottom:12px;transition:border-color .2s;}
+.ht-card:hover{border-color:#33334a;}
+.ht-card-header{padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.ht-card-icon{font-size:17px;flex-shrink:0;}
+.ht-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white);}
+.ht-card-body{padding:14px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.85;}
+.ht-card-body strong{color:var(--text);}
+
+/* Tip boxes */
+.ht-tip{background:var(--purple-glow);border:1px solid rgba(139,92,246,.28);border-radius:12px;padding:13px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;}
+.ht-tip.green{background:var(--green-glow);border-color:rgba(34,217,138,.22);}
+.ht-tip-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.ht-tip-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;}
+.ht-tip-text strong{color:var(--purple);}
+.ht-tip.green .ht-tip-text strong{color:var(--green);}
+
+/* Grid — match .out-grid */
+.ht-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:12px;}
+
+/* Grid items — match .out-card */
+.ht-grid-item{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:12px;overflow:hidden;transition:border-color .2s;}
+.ht-grid-item:hover{border-color:#33334a;}
+.ht-grid-item-header{padding:13px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.ht-grid-item-icon{font-size:16px;flex-shrink:0;}
+.ht-grid-item-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white);}
+.ht-grid-item-body{padding:12px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.75;}
+
+/* Section heading — match .section-label */
+.ht-section-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:36px;}
+.ht-section-num{width:22px;height:22px;background:linear-gradient(135deg,var(--purple),var(--purple-dim));border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:white;flex-shrink:0;}
+.ht-section-name{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--purple);text-transform:uppercase;}
+
+/* Overview grid — match main out-grid */
+.ht-overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:40px;}
+
+/* Divider & FAQ */
+.ht-divider{border:none;border-top:1px solid var(--border);margin:40px 0;}
+.ht-faq-list{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:12px;overflow:hidden;}
+.ht-faq-item{border-bottom:1px solid var(--border);padding:0;}
+.ht-faq-item:last-child{border-bottom:none;}
+.ht-faq-q{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;color:var(--text);}
+.ht-faq-q:hover{background:var(--card2);}
+.ht-faq-chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;}
+.ht-faq-item.open .ht-faq-chevron{transform:rotate(180deg);color:var(--purple);}
+.ht-faq-a{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.85;display:none;padding:0 18px 16px;}
+.ht-faq-item.open .faq-q{color:var(--purple);}
+.ht-faq-item.open .ht-faq-a{display:block;}
+
+/* FAQ heading */
+.ht-h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px;color:var(--white);margin-bottom:5px;}
+.ht-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:16px;}
+
+@media(max-width:600px){
+  #howto-panel{padding:20px 16px 60px;}
+  .ht-grid,.ht-overview{grid-template-columns:1fr;}
+  .ht-step{gap:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">&#127981;</div>
+    <div class="logo-text">Vid<span>Slayer</span></div>
+  </div>
+
+  <!-- DROPDOWN NAV -->
+  <div class="dropdown" id="nav-dropdown">
+    <button class="dropdown-btn" onclick="toggleDropdown()" id="dropdown-trigger">
+      <span id="dropdown-label">Home</span>
+      <span class="dropdown-arrow" id="dropdown-arrow">&#9660;</span>
+    </button>
+    <div class="dropdown-menu" id="dropdown-menu">
+      <button class="dropdown-item active" id="nav-home"    onclick="switchTab('tool',this,'Home')">&#127968; Home</button>
+      <button class="dropdown-item"        id="nav-howto"   onclick="switchTab('howto',this,'How To Use')">&#128218; How To Use</button>
+      <button class="dropdown-item"        id="nav-faq"     onclick="switchTab('faq',this,'FAQ')">&#10067; FAQ</button>
+    </div>
+  </div>
+</header>
+
+<!-- TOOL PANEL -->
+<div id="tool-panel">
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Enter a keyword.<br><em>Get everything.</em></h1>
+  <p>Type your topic or keyword — VidSlayer generates title ideas, hooks, script outline, tags, description, CTR score &amp; more.</p>
+
+  <div class="title-box">
+    <div class="title-input-wrap">
+      <input type="text" id="main-title" placeholder="e.g. burning fat, morning routine, money mistakes..." autocomplete="off" onkeydown="if(event.key==='Enter')generateAll()" oninput="onTitleChange()">
+      <button class="gen-btn" id="gen-btn" onclick="generateAll()">Generate All &#9654;</button>
+    </div>
+    <div class="title-hints">
+      <span class="hint" onclick="setEx('burning fat')">&#128170; Fat Loss</span>
+      <span class="hint" onclick="setEx('morning routine')">&#9728;&#65039; Morning Routine</span>
+      <span class="hint" onclick="setEx('money mistakes')">&#128176; Money</span>
+      <span class="hint" onclick="setEx('YouTube growth')">&#127916; YouTube</span>
+      <span class="hint" onclick="setEx('meal prep')">&#127859; Meal Prep</span>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status-bar">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="status-text" id="status-text">Generating...</div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- Title bar (hidden until generated) -->
+  <div class="title-bar" id="title-bar" style="display:none;">
+    <div class="tbar-label">Topic / Keyword</div>
+    <div class="tbar-title" id="tbar-title">–</div>
+    <div class="tbar-score" id="tbar-score"></div>
+  </div>
+
+  <!-- ── SECTION 1: OPTIMIZATION ───────────────── -->
+  <div class="section-label">
+    <div class="section-num">1</div>
+    <div class="section-name">Optimization</div>
+  </div>
+  <div class="out-grid">
+
+    <!-- CTR SCORE -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#128200;</div>
+        <div class="card-title">CTR Title Score</div>
+        <button class="refresh-btn" title="Refresh" onclick="refreshSection('ctr',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div class="ctr-input-row">
+          <input type="text" id="ctr-live-input" placeholder="Paste or type your full video title to score it..." oninput="debouncedRescore()">
+          <button onclick="rescoreLive()">Score</button>
+        </div>
+        <div class="score-row">
+          <div class="score-num" id="ctr-score-num">–</div>
+          <div class="score-bar-bg"><div class="score-bar-fill" id="ctr-score-bar" style="width:0%"></div></div>
+          <div class="score-denom">/100</div>
+        </div>
+        <div id="ctr-empty" class="empty-state"><div class="empty-icon">&#128200;</div><div class="empty-text">Pick a title from the Title Ideas card<br>or type one above to score it</div></div>
+        <div class="out-text" id="ctr-out" style="display:none;"></div>
+        <div class="copy-bar" id="ctr-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('ctr-out',this)">&#128203; Copy Report</button></div>
+      </div>
+    </div>
+
+    <!-- TITLE VARIATIONS -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#128204;</div>
+        <div class="card-title">Title Ideas</div>
+        <button class="refresh-btn" title="Refresh" onclick="refreshSection('titles',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="titles-empty" class="empty-state"><div class="empty-icon">&#128204;</div><div class="empty-text">Enter a keyword above<br>to get title ideas</div></div>
+        <div id="title-chips-wrap" style="display:none;"></div>
+        <div class="copy-bar" id="titles-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('titles-hidden',this)">&#128203; Copy All Titles</button></div>
+        <div id="titles-hidden" style="display:none;white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION 2: CONTENT ─────────────────────── -->
+  <div class="section-label">
+    <div class="section-num">2</div>
+    <div class="section-name">Content</div>
+  </div>
+  <div class="out-grid">
+
+    <!-- SCRIPT OUTLINE -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#128203;</div>
+        <div class="card-title">Script Outline</div>
+        <button class="refresh-btn" title="Refresh" onclick="refreshSection('script',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="script-empty" class="empty-state"><div class="empty-icon">&#128203;</div><div class="empty-text">Generate to see your<br>full script outline &amp; AI prompt</div></div>
+        <div class="out-text" id="script-out" style="display:none;"></div>
+        <div class="copy-bar" id="script-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('script-out',this)">&#128203; Copy Outline</button></div>
+        <div class="prompt-panel" id="prompt-panel" style="display:none;">
+          <div class="prompt-top">
+            <div class="prompt-lbl">&#129302; Generate script with AI</div>
+            <div class="wc-row">
+              <span>Words:</span>
+              <input type="range" id="word-slider" min="500" max="5000" step="250" value="1500" oninput="updatePromptPreview()">
+              <strong id="word-count-display">1,500</strong>
+            </div>
+          </div>
+          <div class="prompt-preview" id="prompt-preview"></div>
+          <button class="copy-prompt-btn" onclick="copyPrompt(this)">&#128203; Copy Prompt &mdash; paste into Claude or ChatGPT</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION 3: SEO ─────────────────────────── -->
+  <div class="section-label">
+    <div class="section-num">3</div>
+    <div class="section-name">SEO</div>
+  </div>
+  <div class="out-grid">
+
+    <!-- TAGS -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#127991;&#65039;</div>
+        <div class="card-title">Video Tags</div>
+        <button class="refresh-btn" title="Refresh" onclick="refreshSection('tags',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="tags-empty" class="empty-state"><div class="empty-icon">&#127991;&#65039;</div><div class="empty-text">Generate to get 25 SEO-optimized<br>tags for your video</div></div>
+        <div id="tags-chips-wrap" style="display:none;">
+          <div class="tag-chips" id="tags-chips"></div>
+          <div class="copy-bar" style="margin-top:10px;">
+            <button class="copy-btn" onclick="cpSelTags(this)">&#128203; Selected</button>
+            <button class="copy-btn" onclick="cpAllTags(this)">&#128203; All 25</button>
+          </div>
+          <div id="tags-copied" style="display:none;margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION 4: SCRIPT STUDIO ───────────────── -->
+  <div class="section-label">
+    <div class="section-num">4</div>
+    <div class="section-name">Script Studio</div>
+  </div>
+
+  <!-- Script paste card -->
+  <div class="out-card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-icon">&#128196;</div>
+      <div class="card-title">Paste Your Script</div>
+    </div>
+    <div class="card-body">
+      <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.8;">Paste your script here — whether you generated it with VidSlayer's AI prompt, wrote it yourself, or made it somewhere else. VidSlayer will read it and craft your hooks, thumbnail text, CTAs, and description based on what's actually in the script.</p>
+      <textarea class="wc-input" id="script-paste" placeholder="Paste your script here..." style="min-height:200px;"></textarea>
+      <button class="gen-btn" style="width:100%;border-radius:8px;font-size:14px;padding:13px;margin-top:14px;" onclick="generateFromScript()">&#9654; Generate from Script</button>
+    </div>
+  </div>
+
+  <!-- Script-driven output cards -->
+  <div class="out-grid">
+
+    <!-- HOOKS (script-driven) -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#127907;</div>
+        <div class="card-title">Hook Lines (3-Step Formula)</div>
+        <button class="refresh-btn" title="New variation" onclick="refreshFromScript('hook',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="hook-empty" class="empty-state"><div class="empty-icon">&#127907;</div><div class="empty-text">Paste your script above &amp;<br>click "Generate from Script"</div></div>
+        <div class="out-text" id="hook-out" style="display:none;"></div>
+        <div class="copy-bar" id="hook-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('hook-out',this)">&#128203; Copy Hooks</button></div>
+      </div>
+    </div>
+
+    <!-- THUMBNAIL (script-driven) -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#128444;&#65039;</div>
+        <div class="card-title">Thumbnail Text Ideas</div>
+        <button class="refresh-btn" title="New variation" onclick="refreshFromScript('thumb',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="thumb-empty" class="empty-state"><div class="empty-icon">&#128444;&#65039;</div><div class="empty-text">Paste your script above &amp;<br>click "Generate from Script"</div></div>
+        <div class="out-text" id="thumb-out" style="display:none;"></div>
+        <div class="copy-bar" id="thumb-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('thumb-out',this)">&#128203; Copy</button></div>
+      </div>
+    </div>
+
+    <!-- CTAs (script-driven) -->
+    <div class="out-card">
+      <div class="card-header">
+        <div class="card-icon">&#128227;</div>
+        <div class="card-title">CTA Scripts</div>
+        <button class="refresh-btn" title="New variation" onclick="refreshFromScript('cta',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="cta-empty" class="empty-state"><div class="empty-icon">&#128227;</div><div class="empty-text">Paste your script above &amp;<br>click "Generate from Script"</div></div>
+        <div class="out-text" id="cta-out" style="display:none;"></div>
+        <div class="copy-bar" id="cta-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('cta-out',this)">&#128203; Copy CTAs</button></div>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION (script-driven) -->
+    <div class="out-card" style="grid-column:span 3;">
+      <div class="card-header">
+        <div class="card-icon">&#128221;</div>
+        <div class="card-title">YouTube Description</div>
+        <button class="refresh-btn" title="New variation" onclick="refreshFromScript('desc',this)"> Refresh</button>
+      </div>
+      <div class="card-body">
+        <div id="desc-empty" class="empty-state"><div class="empty-icon">&#128221;</div><div class="empty-text">Paste your script above &amp;<br>click "Generate from Script"</div></div>
+        <div class="out-text" id="desc-out" style="display:none;max-height:320px;"></div>
+        <div class="copy-bar" id="desc-copy" style="display:none;"><button class="copy-btn" onclick="doCopy('desc-out',this)">&#128203; Copy Description</button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION 5: WORD COUNTER ────────────────── -->
+  <div class="section-label">
+    <div class="section-num">5</div>
+    <div class="section-name">Word Counter</div>
+  </div>
+  <div class="out-card" style="max-width:100%;">
+    <div class="card-header">
+      <div class="card-icon">&#128290;</div>
+      <div class="card-title">Word &amp; Script Counter</div>
+    </div>
+    <div class="card-body">
+      <textarea class="wc-input" id="wc-text" placeholder="Paste any text here to count words &amp; estimate video length..." oninput="liveCountStandalone()"></textarea>
+      <div class="wc-grid" style="margin-top:12px;">
+        <div class="wc-stat"><div class="wc-num" id="wc-w2">0</div><div class="wc-lbl">Words</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-c2">0</div><div class="wc-lbl">Characters</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-r2">0:00</div><div class="wc-lbl">Read Time</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-v2">0:00</div><div class="wc-lbl">Video Time</div></div>
+      </div>
+      <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:8px;">Video time at ~130 words/min spoken pace</p>
+      <div class="copy-bar">
+        <button class="copy-btn" onclick="cpWcStats(this)">&#128203; Copy Stats</button>
+        <button class="copy-btn" onclick="cpWcText(this)">&#128203; Copy Text</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+</div><!-- /tool-panel -->
+
+<!-- HOW TO USE PANEL -->
+<div id="howto-panel">
+
+  <!-- Overview -->
+  <div class="ht-section-label" style="margin-top:8px;">
+    <div class="ht-section-num">&#9679;</div>
+    <div class="ht-section-name">What's inside VidSlayer</div>
+  </div>
+  <div class="ht-overview">
+    <div class="ht-grid-item">
+      <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128200;</div><div class="ht-grid-item-title">1 · Optimization</div></div>
+      <div class="ht-grid-item-body">CTR Score &amp; Title Ideas — enter a keyword to get title suggestions, tap one to score it.</div>
+    </div>
+    <div class="ht-grid-item">
+      <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128203;</div><div class="ht-grid-item-title">2 · Content</div></div>
+      <div class="ht-grid-item-body">Script Outline + AI prompt — auto-updates when you change your keyword.</div>
+    </div>
+    <div class="ht-grid-item">
+      <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#127991;&#65039;</div><div class="ht-grid-item-title">3 · SEO</div></div>
+      <div class="ht-grid-item-body">25 video tags generated from your keyword.</div>
+    </div>
+    <div class="ht-grid-item">
+      <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128196;</div><div class="ht-grid-item-title">4 · Script Studio</div></div>
+      <div class="ht-grid-item-body">Paste any script — hooks, thumbnail, CTAs, and description generated from it. Title auto-extracted from first line if not set.</div>
+    </div>
+    <div class="ht-grid-item">
+      <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128290;</div><div class="ht-grid-item-title">5 · Word Counter</div></div>
+      <div class="ht-grid-item-body">Paste any text to count words and estimate video length.</div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="ht-section-label"><div class="ht-section-num">1</div><div class="ht-section-name">Start here</div></div>
+  <div class="ht-step">
+    <div class="ht-num">1</div>
+    <div class="ht-body">
+      <div class="ht-tag">Step 1</div>
+      <div class="ht-title">Enter a keyword or topic phrase</div>
+      <div class="ht-desc">Type a short keyword or topic into the input at the top — like "burning fat", "morning routine", or "money mistakes". VidSlayer uses this to generate title ideas, a script outline, tags, and more. Press Enter or click "Generate All."</div>
+      <div class="ht-tip"><div class="ht-tip-icon">&#128161;</div><div class="ht-tip-text"><strong>Keep it short:</strong> 1–4 words works best. "burning fat" → generates titles like "3 Burning Fat Secrets That Feel Like CHEATING" and "How to Achieve Burning Fat in 30 Days Without the Guesswork."</div></div>
+      <div class="ht-card">
+        <div class="ht-card-header"><div class="ht-card-icon">&#9997;&#65039;</div><div class="ht-card-title">Keyword vs. Title — what's the difference?</div></div>
+        <div class="ht-card-body"><strong>Keyword</strong> = the core topic. Enter this in the main input to generate everything.<br>Examples: <strong>burning fat · morning routine · money mistakes · YouTube growth</strong><br><br><strong>Title</strong> = the full clickable video title. Paste this into the <strong>CTR Title Score</strong> card after picking one from the Title Variations section — to see how it scores.</div>
+      </div>
+      <div class="ht-tip green"><div class="ht-tip-icon">&#8635;</div><div class="ht-tip-text"><strong>Keyword change = auto-update:</strong> After generating, editing the keyword automatically regenerates the script outline after you stop typing — no need to click "Generate All" again.</div></div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="ht-section-label"><div class="ht-section-num">2</div><div class="ht-section-name">Generate</div></div>
+  <div class="ht-step">
+    <div class="ht-num">2</div>
+    <div class="ht-body">
+      <div class="ht-tag">Step 2</div>
+      <div class="ht-title">Click "Generate All"</div>
+      <div class="ht-desc">Hit Enter or click "Generate All." VidSlayer populates all of Sections 1, 2, and 3 at once.</div>
+      <div class="ht-grid">
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128200;</div><div class="ht-grid-item-title">CTR Title Score</div></div>
+          <div class="ht-grid-item-body">Auto-generates a suggested title from your keyword and scores it. Edit the input or tap any title from Title Ideas to rescore instantly.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128204;</div><div class="ht-grid-item-title">Title Ideas</div></div>
+          <div class="ht-grid-item-body">8 title variations built from proven viral frameworks. Tap any to load it into the CTR scorer. Hit ↻ for a fresh set.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128203;</div><div class="ht-grid-item-title">Script Outline</div></div>
+          <div class="ht-grid-item-body">Structured outline for your video type — story, list, or tutorial — plus an AI prompt at the bottom ready to copy.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#127991;&#65039;</div><div class="ht-grid-item-title">Video Tags</div></div>
+          <div class="ht-grid-item-body">25 SEO-optimized tags. Tap chips to select specific ones, then copy selected or all 25 at once.</div>
+        </div>
+      </div>
+      <div class="ht-tip green"><div class="ht-tip-icon">&#8635;</div><div class="ht-tip-text"><strong>Refresh buttons:</strong> Every card has a ↻ button. It regenerates just that one card for a fresh variation — without redoing everything else.</div></div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="ht-section-label"><div class="ht-section-num">3</div><div class="ht-section-name">Script</div></div>
+  <div class="ht-step">
+    <div class="ht-num">3</div>
+    <div class="ht-body">
+      <div class="ht-tag">Step 3</div>
+      <div class="ht-title">Generate your script with AI</div>
+      <div class="ht-desc">Inside the Script Outline card, adjust the word count slider (default: 1,500 words), then copy the prompt and paste it into Claude, ChatGPT, or any AI. The prompt tells the AI to research the topic first, then write a full script following the outline.</div>
+      <div class="ht-card">
+        <div class="ht-card-header"><div class="ht-card-icon">&#129302;</div><div class="ht-card-title">What's inside the AI prompt?</div></div>
+        <div class="ht-card-body">
+          <strong>1. Research first</strong> — looks up facts, stats, and examples before writing a word<br>
+          <strong>2. Follows the outline</strong> — uses the exact structure VidSlayer generated<br>
+          <strong>3. Conversational tone</strong> — like talking to one close friend<br>
+          <strong>4. BUT/THEREFORE transitions</strong> — keeps viewer retention high<br>
+          <strong>5. Teleprompter-ready</strong> — each sentence on its own line, no stage directions
+        </div>
+      </div>
+      <div class="ht-tip"><div class="ht-tip-icon">&#128221;</div><div class="ht-tip-text"><strong>Word count slider:</strong> 500 words ≈ 4 min &nbsp;·&nbsp; 1,500 words ≈ 11 min &nbsp;·&nbsp; 5,000 words ≈ 38 min</div></div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="ht-section-label"><div class="ht-section-num">4</div><div class="ht-section-name">Script Studio</div></div>
+  <div class="ht-step">
+    <div class="ht-num">4</div>
+    <div class="ht-body">
+      <div class="ht-tag">Step 4</div>
+      <div class="ht-title">Paste your script — generate everything else</div>
+      <div class="ht-desc">Once you have a finished script — from VidSlayer's AI prompt, written yourself, or from anywhere else — scroll to Section 4, paste it in, and click "Generate from Script." VidSlayer reads the script content and generates all four outputs based on what's actually in it.</div>
+      <div class="ht-tip green"><div class="ht-tip-icon">&#128161;</div><div class="ht-tip-text"><strong>No keyword entered?</strong> VidSlayer reads the first line of your pasted script and uses it as the keyword — automatically populating CTR score, title ideas, script outline, tags, and description. So you can skip Step 1 entirely if your script already starts with the title.</div></div>
+      <div class="ht-grid">
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#127907;</div><div class="ht-grid-item-title">Hook Lines</div></div>
+          <div class="ht-grid-item-body">3 opening hooks using the Context Lean → Scroll Stop → Contrarian Snapback formula, tailored to your script's topic.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128444;&#65039;</div><div class="ht-grid-item-title">Thumbnail Text</div></div>
+          <div class="ht-grid-item-body">6 thumbnail text options based on your script's angle — designed to complete your title, not repeat it.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128227;</div><div class="ht-grid-item-title">CTA Scripts</div></div>
+          <div class="ht-grid-item-body">3 end-of-video CTAs: subscribe, like & comment, and watch next. Each refreshes to a new variation.</div>
+        </div>
+        <div class="ht-grid-item">
+          <div class="ht-grid-item-header"><div class="ht-grid-item-icon">&#128221;</div><div class="ht-grid-item-title">YouTube Description</div></div>
+          <div class="ht-grid-item-body">Full SEO description with an opener pulled from your script, bullet points, chapter placeholder, social links, and hashtags.</div>
+        </div>
+      </div>
+      <div class="ht-tip"><div class="ht-tip-icon">&#8635;</div><div class="ht-tip-text"><strong>Refresh any card:</strong> Hit ↻ on any Script Studio card to get a new randomized variation — without re-pasting your script.</div></div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="ht-section-label"><div class="ht-section-num">5</div><div class="ht-section-name">Copy &amp; use</div></div>
+  <div class="ht-step">
+    <div class="ht-num">5</div>
+    <div class="ht-body">
+      <div class="ht-tag">Step 5</div>
+      <div class="ht-title">Copy any output and use it</div>
+      <div class="ht-desc">Every single output on VidSlayer has a copy button. Click it and the content is instantly on your clipboard — ready to paste into YouTube Studio, your script doc, or anywhere you need it.</div>
+      <div class="ht-card">
+        <div class="ht-card-header"><div class="ht-card-icon">&#128203;</div><div class="ht-card-title">Copy button guide</div></div>
+        <div class="ht-card-body">
+          <strong>Tags:</strong> Tap chips to select specific ones → "Copy Selected" or "Copy All 25"<br>
+          <strong>Title Ideas:</strong> Tap any title to load it into the CTR scorer, or "Copy All Titles" for the full list<br>
+          <strong>Script Outline:</strong> "Copy Outline" for the structure, or "Copy Prompt" for the full AI prompt<br>
+          <strong>Word Counter:</strong> "Copy Stats" for the numbers, or "Copy Text" for what you pasted<br>
+          <strong>Everything else:</strong> One button copies the full output instantly
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ removed to its own panel -->
+
+</div><!-- /howto-panel -->
+
+<!-- FAQ PANEL -->
+<div id="faq-panel" style="display:none;max-width:860px;margin:0 auto;padding:32px 28px 80px;">
+  <div class="ht-section-label" style="margin-top:0;">
+    <div class="ht-section-num">?</div>
+    <div class="ht-section-name">Frequently asked questions</div>
+  </div>
+  <p class="ht-sub">Click a question to expand.</p>
+  <div class="ht-faq-list">
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Is VidSlayer really free?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">Yes, completely. VidSlayer runs entirely in your browser — no server, no database, no API calls. No sign-up, no credit card, no free trial. Everything is free forever.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Do I need an account or API key?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">No. VidSlayer has no accounts and requires no API key. All tools run locally in your browser using JavaScript — nothing is sent to any server.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Why use an AI prompt instead of generating the script directly?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">Generating a full 1,500+ word script requires a large language model — which needs an API key and costs money per request. By giving you a ready-to-paste prompt, VidSlayer stays completely free while still getting great results from Claude, ChatGPT, or any AI you already use.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Which AI should I paste the script prompt into?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">Claude (claude.ai) or ChatGPT both work great. Claude tends to write more conversational, natural-sounding scripts. Both have free tiers. Paste the copied prompt, hit send, then paste the result back into VidSlayer's Script Studio.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Can I use a script I wrote myself or made somewhere else?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">Absolutely. Script Studio works with any script from any source — AI-generated, hand-written, from Google Docs, Notion, Word, or anywhere else. Paste it in and click "Generate from Script." If your script starts with the topic on the first line, VidSlayer will extract it and use it across all sections.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">What does the CTR score actually measure?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">The CTR score checks your title against proven factors: length (40–55 chars is ideal), numbers, curiosity-gap language, power words, question format, brackets, year signals, CAPS emphasis, and benefit framing. It's a guide, not a guarantee — but titles scoring 70+ consistently outperform lower-scoring ones.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Why should thumbnail text complete the title, not repeat it?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">The best-performing thumbnails tell a different part of the story. If your title is "I Quit My 6-Figure Job" — your thumbnail shouldn't repeat that. Say "BEST DECISION EVER" or "BIGGEST MISTAKE" instead — so together they create one bigger, more compelling story that makes people click.</div>
+    </div>
+    <div class="ht-faq-item">
+      <div class="ht-faq-q" onclick="toggleFaq(this)">Can I use VidSlayer on my phone?<span class="ht-faq-chevron">&#9660;</span></div>
+      <div class="ht-faq-a">Yes. VidSlayer is fully responsive and works on mobile browsers. The layout adjusts to a single column on smaller screens, and all copy buttons work on iOS and Android.</div>
+    </div>
+  </div>
+</div><!-- /faq-panel -->
+
+<footer>
+  <strong>VidSlayer</strong> &nbsp;&middot;&nbsp; Free YouTube Creator Toolkit &nbsp;&middot;&nbsp; No API key &middot; No sign-up &middot; No cost
+</footer>
+
+<script>
+// --- COPY ---------------------------------------------------------------------
+function doRawCopy(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly','');
+  ta.style.cssText='position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;background:transparent;opacity:0;z-index:9999;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  if(navigator.userAgent.match(/ipad|iphone/i)){var r=document.createRange();r.selectNodeContents(ta);var s=window.getSelection();s.removeAllRanges();s.addRange(r);ta.setSelectionRange(0,999999);}
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(function(){});
+  var o=btn.textContent; btn.textContent='✓ Copied!'; btn.classList.add('ok');
+  setTimeout(function(){btn.textContent=o;btn.classList.remove('ok');},1800);
+}
+function doCopy(id,btn){doRawCopy(document.getElementById(id).textContent.trim(),btn);}
+function cpSelTags(btn){
+  var sel=Array.from(document.querySelectorAll('#tags-chips .chip.sel')).map(function(c){return c.textContent;});
+  var all=Array.from(document.querySelectorAll('#tags-chips .chip')).map(function(c){return c.textContent;});
+  var t=(sel.length?sel:all).join(', ');
+  document.getElementById('tags-copied').style.display='block';
+  document.getElementById('tags-copied').textContent=t;
+  doRawCopy(t,btn);
+}
+function cpAllTags(btn){
+  var all=Array.from(document.querySelectorAll('#tags-chips .chip')).map(function(c){return c.textContent;}).join(', ');
+  document.getElementById('tags-copied').style.display='block';
+  document.getElementById('tags-copied').textContent=all;
+  doRawCopy(all,btn);
+}
+function cpWcStats(btn){doRawCopy('Words: '+document.getElementById('wc-w2').textContent+' | Characters: '+document.getElementById('wc-c2').textContent+' | Read Time: '+document.getElementById('wc-r2').textContent+' | Video Time: '+document.getElementById('wc-v2').textContent,btn);}
+function cpWcText(btn){doRawCopy(document.getElementById('wc-text').value,btn);}
+
+// --- HELPERS -----------------------------------------------------------------
+function setEx(t){document.getElementById('main-title').value=t;document.getElementById('main-title').focus();}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+function shuffle(a){return a.slice().sort(function(){return Math.random()-.5;});}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+var POWER=['secret','ultimate','proven','never','always','instantly','exactly','shocking','exposed','truth','mistake','free','fast','easy','hidden','complete','guaranteed','cheating','reveals','ditch','avoid','escape','banned','real','simple'];
+
+function showCard(textId, emptyId, copyId, text){
+  document.getElementById(emptyId).style.display='none';
+  document.getElementById(textId).style.display='block';
+  document.getElementById(textId).textContent=text;
+  if(copyId) document.getElementById(copyId).style.display='flex';
+}
+
+function setProgress(p,msg){
+  document.getElementById('progress-fill').style.width=p+'%';
+  document.getElementById('status-text').textContent=msg;
+}
+
+// --- REFRESH - each button only regenerates that one section -----------------
+function refreshSection(section, btn){
+  var title = document.getElementById('main-title').value.trim();
+  if(!title){ alert('Enter a title first, then click "Generate All" before refreshing.'); return; }
+  btn.classList.add('spinning');
+  setTimeout(function(){
+    try {
+      if(section === 'ctr')    { document.getElementById('ctr-live-input').value = title; genCTR(title); }
+      if(section === 'titles') { genTitles(title); }
+      if(section === 'script') { genScript(title); }
+      if(section === 'tags')   { genTags(title); }
+    } catch(e){ console.error(e); }
+    btn.classList.remove('spinning');
+  }, 350);
+}
+
+// --- WORD COUNTER (standalone section 5) -------------------------------------
+function liveCountStandalone(){
+  var t = document.getElementById('wc-text').value.trim();
+  var w = t ? t.split(/\s+/).filter(Boolean).length : 0;
+  var fmt = function(s){ return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); };
+  document.getElementById('wc-w2').textContent = w.toLocaleString();
+  document.getElementById('wc-c2').textContent = t.length.toLocaleString();
+  document.getElementById('wc-r2').textContent = fmt(Math.round(w/250*60));
+  document.getElementById('wc-v2').textContent = fmt(Math.round(w/130*60));
+}
+
+// --- TITLE CHANGE - regenerates script outline whenever keyword changes -------
+var titleChangeTimer = null;
+function onTitleChange() {
+  clearTimeout(titleChangeTimer);
+  titleChangeTimer = setTimeout(function(){
+    var keyword = document.getElementById('main-title').value.trim();
+    if (!keyword) return;
+
+    // Use the picked title from CTR input if it exists, otherwise use keyword
+    var ctrInput = document.getElementById('ctr-live-input');
+    var pickedTitle = ctrInput && ctrInput.value.trim() && ctrInput.value.trim().indexOf(' ') !== -1
+      ? ctrInput.value.trim()
+      : keyword;
+
+    // Update title bar
+    document.getElementById('tbar-title').textContent = keyword;
+
+    // Always regenerate script outline with the picked/keyword title
+    genScript(pickedTitle);
+    updatePromptPreview();
+  }, 600);
+}
+
+// --- SCRIPT STUDIO - generate all 4 script-driven sections -------------------
+function extractTitleFromScript(script) {
+  // Try to grab the first non-empty line as the title
+  var lines = script.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+  if (!lines.length) return '';
+  var first = lines[0];
+  // Strip common script artifacts like "Title:", quotes, dashes
+  first = first.replace(/^(title:|video title:|#)\s*/i, '').replace(/^["'\-–—]+|["'\-–—]+$/g, '').trim();
+  // Only use it if it looks like a title (not too long, not a paragraph)
+  return (first.length > 5 && first.length < 120) ? first : '';
+}
+
+function generateFromScript(){
+  var script = document.getElementById('script-paste').value.trim();
+  if(!script){ alert('Paste your script first.'); return; }
+
+  var titleInput = document.getElementById('main-title');
+  var title = titleInput.value.trim();
+
+  // If no title set, extract from first line of script
+  if (!title) {
+    var extracted = extractTitleFromScript(script);
+    if (extracted) {
+      titleInput.value = extracted;
+      title = extracted;
+    }
+  }
+
+  // If we have a title (entered or extracted), regenerate all title-driven sections
+  if (title) {
+    document.getElementById('tbar-title').textContent = title;
+    document.getElementById('title-bar').style.display = 'flex';
+    var ctrInput = document.getElementById('ctr-live-input');
+    if (ctrInput) ctrInput.value = title;
+    genCTR(title);
+    genTitles(title);
+    genScript(title);
+    genTags(title);
+  }
+
+  // Always generate the 4 script-driven sections
+  genHooksFromScript(script, title);
+  genThumbFromScript(script, title);
+  genCTAFromScript(script, title);
+  genDescFromScript(script, title);
+}
+
+// --- REFRESH individual script-driven section ---------------------------------
+function refreshFromScript(section, btn){
+  var script = document.getElementById('script-paste').value.trim();
+  if(!script){ alert('Paste your script first, then click "Generate from Script".'); return; }
+  var title = document.getElementById('main-title').value.trim() || extractTitleFromScript(script);
+  btn.classList.add('spinning');
+  setTimeout(function(){
+    try {
+      if(section === 'hook')  genHooksFromScript(script, title);
+      if(section === 'thumb') genThumbFromScript(script, title);
+      if(section === 'cta')   genCTAFromScript(script, title);
+      if(section === 'desc')  genDescFromScript(script, title);
+    } catch(e){ console.error(e); }
+    btn.classList.remove('spinning');
+  }, 350);
+}
+
+// --- HOOKS - from script ------------------------------------------------------
+function genHooksFromScript(script, title){
+  var topic = (title || '').replace(/^(how to |why |what |the )/i,'').replace(/[!?]/g,'').trim();
+  var lower = script.toLowerCase();
+
+  // Extract opening sentences of the script to base hook on
+  var sentences = script.split(/(?<=[.!?])\s+/).slice(0,6).join(' ');
+  var short = sentences.length > 200 ? sentences.substring(0,200)+'...' : sentences;
+
+  var allHooks = [
+    cap(topic)+' is something most people get completely wrong.\n\n[SCROLL STOP] But here\'s the thing — the advice you\'ve seen everywhere isn\'t just ineffective. It might be making things worse.\n\n[SNAPBACK] Because the real answer has nothing to do with what everyone keeps talking about. And in this video, I\'m going to show you exactly what does work.',
+
+    'I spent months doing '+topic.toLowerCase()+' the wrong way. Tried everything. Read every article. Nothing clicked.\n\n[SCROLL STOP] But then I found one thing that changed everything — and it wasn\'t more information.\n\n[SNAPBACK] It was realizing I\'d been asking the wrong question the whole time. Here\'s what I found, and how you can use it starting today.',
+
+    'What if the one thing holding you back with '+topic.toLowerCase()+' isn\'t effort, knowledge, or time?\n\n[SCROLL STOP] There\'s actually a much simpler explanation — and it has nothing to do with what most people focus on.\n\n[SNAPBACK] By the end of this video, you\'ll know exactly what it is — and the one shift that fixes it.',
+
+    'Here\'s something nobody tells you about '+topic.toLowerCase()+'.\n\n[SCROLL STOP] Most of what you\'ve been taught? It\'s backwards. And I don\'t mean that as a metaphor.\n\n[SNAPBACK] The people getting real results are doing the exact opposite of conventional wisdom — and today I\'m breaking it all down.',
+
+    'I\'m going to say something controversial: working harder at '+topic.toLowerCase()+' is probably not the answer.\n\n[SCROLL STOP] But if effort isn\'t the key, what is?\n\n[SNAPBACK] It comes down to one decision most people never make — and once you make it, everything gets dramatically easier.',
+
+    'Two years ago I was completely lost with '+topic.toLowerCase()+'. And then one thing changed — not a new tool, not more practice.\n\n[SCROLL STOP] It was a realization that felt almost too simple to be true.\n\n[SNAPBACK] But it worked. And in this video I\'m walking you through exactly what it was, step by step.',
+
+    'You\'ve probably looked for answers about '+topic.toLowerCase()+' before. Watched videos. Read articles. Maybe even tried a few things.\n\n[SCROLL STOP] So why is it still not clicking?\n\n[SNAPBACK] Because almost everything out there is missing one critical thing. This video isn\'t.',
+
+    'Stop and think about this: what if the reason '+topic.toLowerCase()+' feels so hard is because you\'re solving the wrong problem entirely?\n\n[SCROLL STOP] That\'s exactly what I thought — until I saw the data.\n\n[SNAPBACK] The highest performers all figured out one thing nobody talks about. Here it is.',
+  ];
+
+  var picked = shuffle(allHooks).slice(0,3);
+  var out = picked.map(function(h,i){ return '=== HOOK '+(i+1)+' ===\n\n'+h; }).join('\n\n\n');
+  out += '\n\n---------------------\nFORMULA: Context Lean → Scroll Stop → Contrarian Snapback\nBased on your script topic. Hit ↻ for new variations.';
+  showCard('hook-out','hook-empty','hook-copy',out);
+}
+
+// --- THUMBNAIL - from script --------------------------------------------------
+function genThumbFromScript(script, title){
+  var lower = (script+' '+(title||'')).toLowerCase();
+
+  var contextual = [];
+  if(lower.includes('mistake')||lower.includes('wrong')||lower.includes('avoid')||lower.includes('stop')){
+    contextual = ['YOU\'RE DOING IT WRONG','STOP THIS NOW','I WISH I KNEW THIS','BIG MISTAKE','DON\'T DO THIS','I LEARNED THE HARD WAY'];
+  } else if(lower.includes('tried')||lower.includes('tested')||lower.includes('30 day')||lower.includes('honest')){
+    contextual = ['THE HONEST TRUTH','NOT WHAT I EXPECTED','THE REAL RESULTS','WORTH IT?','I WAS SHOCKED','IT ACTUALLY WORKED'];
+  } else if(lower.includes('secret')||lower.includes('nobody')||lower.includes('hidden')||lower.includes('reveal')){
+    contextual = ['THEY HIDE THIS','THE REAL ANSWER','FINALLY EXPOSED','NOBODY SAYS THIS','THE TRUTH IS OUT','THEY DON\'T WANT YOU TO KNOW'];
+  } else if(lower.includes('how to')||lower.includes('guide')||lower.includes('beginner')||lower.includes('step')){
+    contextual = ['THIS WORKS','START HERE','STEP BY STEP','EASIEST WAY','JUST DO THIS','FOLLOW THESE STEPS'];
+  } else if(lower.includes('why')||lower.includes('reason')||lower.includes('truth')){
+    contextual = ['HERE\'S WHY','THE REAL REASON','THIS IS WHY','NOW I GET IT','FINALLY MAKES SENSE','THE ANSWER'];
+  } else {
+    contextual = ['LIFE CHANGING','THE TRUTH','YOU NEED THIS','THIS IS IT','GAME CHANGER','WATCH THIS'];
+  }
+
+  var universal = [
+    'WATCH THIS FIRST','I WAS WRONG','CHANGED EVERYTHING',
+    'NO ONE TALKS ABOUT THIS','THIS SURPRISED ME','WAIT FOR IT',
+    'THE HARD TRUTH','DON\'T SKIP THIS','PAY ATTENTION',
+    'I CAN\'T BELIEVE THIS','THIS IS HUGE','YOU\'LL THANK ME LATER',
+  ];
+
+  var picked = shuffle(contextual).slice(0,3).concat(shuffle(universal).slice(0,3));
+  var out = shuffle(picked).map(function(t,i){ return (i+1)+'. '+t; }).join('\n');
+  out += '\n\n---------------------\nRULE: Thumbnail text should COMPLETE your title story — not repeat it.\nBased on your script content. Hit ↻ for new options.';
+  showCard('thumb-out','thumb-empty','thumb-copy',out);
+}
+
+// --- CTA - from script --------------------------------------------------------
+function genCTAFromScript(script, title){
+  var topic = (title||'this topic').replace(/[!?]/g,'').trim().toLowerCase();
+
+  var subscribeCTAs = [
+    '"If this video helped you at all — hit subscribe. I post content like this every week, and it helps more people find it. Takes one second, costs nothing."',
+    '"If you\'re not subscribed yet, now\'s the time. I cover '+topic+' and a lot more — every week, no fluff, just what actually works."',
+    '"One small thing before you go — subscribe if this was worth your time. It tells YouTube this content is valuable, and it helps me keep making more of it."',
+    '"New here? Hit subscribe. I cover '+topic+' and similar stuff every single week — you won\'t want to miss what\'s coming next."',
+    '"If you found this useful, subscribing is the best way to support it. Free, takes two seconds, and you\'ll never miss a video."',
+  ];
+
+  var likeCommentCTAs = [
+    '"Before you go — drop a like if this was useful, and tell me in the comments: what was your biggest takeaway from this video? I read every single one."',
+    '"Real quick — tap like if this helped. And comment below: what\'s your biggest challenge with this right now? I\'m reading everything."',
+    '"If you got value from this, a like goes a long way. And I genuinely want to know — what did you think? Drop it in the comments."',
+    '"Hit the like button if this saved you time, and let me know in the comments: did anything here surprise you? I reply to as many as I can."',
+    '"Like this video if it helped, and comment with one thing you\'re going to try first. I love hearing what people do with this."',
+  ];
+
+  var watchNextCTAs = [
+    '"Don\'t stop now — I made another video that goes even deeper on this. It\'s linked on screen right now. You\'re going to love it."',
+    '"If you want to take this further, my next video covers exactly what to do after this step. It\'s on screen — check it out."',
+    '"The best next move? Watch the video I\'m linking right now. It picks up exactly where this one left off."',
+    '"This video is part of a bigger picture. The next one connects all the dots — it\'s on screen, go watch it now."',
+    '"You\'ve got the foundation. The next video shows you how to put it all into action — it\'s linked right there on screen."',
+  ];
+
+  var s = pick(subscribeCTAs), l = pick(likeCommentCTAs), w = pick(watchNextCTAs);
+  var out = '=== CTA 1 — Subscribe ===\n\n'+s+'\n\n\n=== CTA 2 — Like & Comment ===\n\n'+l+'\n\n\n=== CTA 3 — Watch Next ===\n\n'+w;
+  out += '\n\n---------------------\nHit ↻ for new CTA variations.';
+  showCard('cta-out','cta-empty','cta-copy',out);
+}
+
+// --- DESCRIPTION - from script ------------------------------------------------
+function genDescFromScript(script, title){
+  var titleClean = (title||'').replace(/[!?]/g,'').trim();
+  var topic = titleClean.toLowerCase();
+  var words = titleClean.split(' ').filter(Boolean);
+  var hashtags = words.filter(function(w){return w.length>3;}).slice(0,3).map(function(w){return '#'+w.replace(/[^a-zA-Z0-9]/g,'');}).join(' ')+' #YouTube #VidSlayer #Creator';
+
+  // Extract a key sentence from the script for the opener
+  var scriptSentences = script.split(/[.!?]+/).map(function(s){return s.trim();}).filter(function(s){return s.length > 30 && s.length < 150;});
+  var keyLine = scriptSentences.length > 2 ? scriptSentences[Math.floor(Math.random()*Math.min(scriptSentences.length,5))] : '';
+
+  var openers = [
+    'In this video, I\'m breaking down everything you need to know about '+topic+'. Whether you\'re just starting out or looking to level up, this covers it all.',
+    'If you\'ve been struggling with '+topic+', this video is for you. I\'m sharing exactly what works — no fluff, no filler.',
+    'This is the video I wish existed when I started with '+topic+'. Everything I\'ve learned, laid out step by step.',
+    'Most content about '+topic+' gets it wrong. In this video, I\'m showing you the approach that actually gets results.',
+    'Ready to finally figure out '+topic+'? I\'ve put together the most practical, no-BS breakdown I know how to give.',
+  ];
+
+  var bulletSets = [
+    ['Why most people get this wrong','The exact process that actually works','Common mistakes to avoid','My best tips & tricks'],
+    ['The biggest mistake beginners make','What actually moves the needle','How to get results faster','The one thing that changed everything'],
+    ['The truth nobody talks about','Step-by-step what to actually do','What to avoid at all costs','Exactly where to start if you\'re new'],
+    ['Why conventional advice falls short','The framework I use every time','Real examples and what they teach us','How to apply this starting today'],
+    ['How to stop wasting time on the wrong things','The strategy that consistently works','Common pitfalls and how to dodge them','What the top people do differently'],
+  ];
+
+  var closers = [
+    '💬 Drop a comment — I read every single one.',
+    '💬 Got a question? Drop it in the comments — I reply to as many as I can.',
+    '💬 Let me know in the comments: what was your biggest takeaway?',
+    '💬 Comment below — what do you want me to cover next?',
+    '💬 I\'d love to hear your thoughts — drop them in the comments below.',
+  ];
+
+  var opener = pick(openers);
+  var bullets = pick(bulletSets);
+  var closer = pick(closers);
+
+  var out = titleClean+'\n\n'+opener;
+  if(keyLine) out += '\n\n'+keyLine+'.';
+  out += '\n\n📌 IN THIS VIDEO:\n';
+  out += bullets.map(function(b){ return '✅ '+b; }).join('\n');
+  out += '\n\n---------------------------------\n📂 CHAPTERS\n00:00 Introduction\n[Add your timestamps here]\n\n---------------------------------\n🔔 NEW VIDEOS EVERY WEEK — Subscribe so you never miss one\n\n📱 CONNECT:\nInstagram → @[your handle]\nTwitter/X  → @[your handle]\nTikTok     → @[your handle]\n\n---------------------------------\n'+closer+'\n\n'+hashtags;
+  showCard('desc-out','desc-empty','desc-copy',out);
+}
+
+// --- GENERATE ALL -------------------------------------------------------------
+function generateAll(){
+  var title=document.getElementById('main-title').value.trim();
+  if(!title){document.getElementById('main-title').focus();return;}
+  document.getElementById('status-bar').classList.add('show');
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('gen-btn').textContent='Generating...';
+  setProgress(5,'Analyzing title...');
+  setTimeout(function(){genCTR(title);    setProgress(18,'Scoring CTR...');},100);
+  setTimeout(function(){genTitles(title); setProgress(36,'Building variations...');},300);
+  setTimeout(function(){genScript(title); setProgress(65,'Building outline...');},550);
+  setTimeout(function(){genTags(title);   setProgress(90,'Generating tags...');},800);
+  setTimeout(function(){
+    setProgress(100,'Done!');
+    document.getElementById('title-bar').style.display='flex';
+    document.getElementById('gen-btn').disabled=false;
+    document.getElementById('gen-btn').textContent='Generate All ▶';
+    setTimeout(function(){document.getElementById('status-bar').classList.remove('show');},600);
+  },1500);
+}
+
+// --- CTR SCORE ----------------------------------------------------------------
+function genCTR(keyword){
+  var li = document.getElementById('ctr-live-input');
+  var inputVal = li ? li.value.trim() : '';
+
+  var title;
+  if(inputVal && inputVal.indexOf(' ') !== -1){
+    // User already has a real title typed - score that
+    title = inputVal;
+  } else {
+    // Auto-generate a title from the keyword
+    var K = cap((keyword||'').replace(/[!?()\[\]""'']/g,'').trim());
+    var starters = [
+      '7 '+K+' Secrets Nobody Talks About',
+      'How to Achieve '+K+' (Without the Guesswork)',
+      '5 Common '+K+' Mistakes That Are Keeping You Stuck',
+      'The Truth About '+K+' Nobody Tells You',
+      '3 '+K+' Secrets That Feel Like CHEATING',
+      'I Tested '+K+' for 30 Days — Here\'s What Happened',
+    ];
+    title = starters[Math.floor(Math.random()*starters.length)];
+    if(li) li.value = title;
+  }
+
+  var lower=title.toLowerCase(),chars=title.length,score=40,good=[],tips=[];
+  if(chars>=40&&chars<=55){score+=15;good.push('✅ Ideal length (40-55 chars)');}
+  else if(chars>55&&chars<=70){score+=7;tips.push('⚠️ May be cut off on mobile — frontload key words');}
+  else if(chars<25){score-=8;tips.push('⚠️ Too short — may not trigger enough curiosity');}
+  else if(chars>70){score-=10;tips.push('❌ Too long — restructure to frontload the hook');}
+  if(/\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.test(lower)){score+=10;good.push('✅ Contains a number — specificity lifts CTR');}
+  else{tips.push('💡 A specific number boosts CTR ("5 Ways" vs "Ways")');}
+  var loopW=['reveals','secrets','nobody','hidden','truth','wrong','mistake','stop','avoid','shocking'];
+  if(loopW.some(function(w){return lower.includes(w);})){score+=12;good.push('✅ Opens a curiosity loop');}
+  else{tips.push('💡 Add a curiosity hook — "reveals", "the truth", "nobody talks about"');}
+  var found=POWER.filter(function(w){return lower.includes(w);});
+  if(found.length){score+=10;good.push('✅ Power word: "'+found[0]+'"');}
+  if(found.length>3){score-=5;tips.push('⚠️ Too many power words — pick your strongest');}
+  if(/\b(how|why|what|when|who|which|can|should|will|does|is|are)\b/i.test(lower)||title.includes('?')){score+=8;good.push('✅ Question format creates curiosity');}
+  if(/[(\[{]/.test(title)){score+=8;good.push('✅ Brackets consistently lift CTR');}
+  else{tips.push('💡 Add brackets — e.g. "(Proven Method)" or "(This Surprised Me)"');}
+  if(/202[4-9]/.test(title)){score+=5;good.push('✅ Year signals freshness');}
+  if(/\b[A-Z]{3,}\b/.test(title)){score+=5;good.push('✅ CAPS word adds visual emphasis');}
+  if(['save','earn','lose','gain','grow','build','get more'].some(function(w){return lower.includes(w);})){score+=8;good.push('✅ Benefit-driven framing');}
+  score=Math.max(5,Math.min(100,score));
+
+  // Update score badge on title bar
+  var badge=document.getElementById('tbar-score');
+  if(badge){badge.textContent=score+'/100';badge.className='tbar-score '+(score>=70?'high':score>=50?'mid':'low');}
+  document.getElementById('tbar-title').textContent=title;
+
+  document.getElementById('ctr-score-num').textContent=score;
+  var bar=document.getElementById('ctr-score-bar');
+  bar.style.width='0%';
+  setTimeout(function(){bar.style.width=score+'%';bar.style.background=score>=75?'#F5C518':score>=50?'#F97316':'#EF4444';},150);
+
+  var label=score>=80?'🟡 HIGH CTR POTENTIAL':score>=60?'🟠 ABOVE AVERAGE':score>=40?'⚪ AVERAGE — needs a stronger hook':'🔴 LOW — rework the structure';
+  var text=[label,''].concat(good).concat(tips.length?[''].concat(tips):[]).concat(['','TIP: If CTR is low in first 24hrs — change the title.']).join('\n');
+  showCard('ctr-out','ctr-empty','ctr-copy',text);
+  // Keep script outline in sync with whatever title is in the CTR box
+  genScript(title);
+}
+
+// ─── RESCORE DEBOUNCE — waits 500ms after typing stops ───────────────────────
+var ctrDebounceTimer = null;
+function debouncedRescore(){
+  clearTimeout(ctrDebounceTimer);
+  ctrDebounceTimer = setTimeout(function(){ rescoreLive(); }, 500);
+}
+
+function rescoreLive(){
+  var t=document.getElementById('ctr-live-input').value.trim();
+  if(!t) return;
+  // Score the typed/edited title without overwriting the input
+  var lower=t.toLowerCase(),chars=t.length,score=40,good=[],tips=[];
+  if(chars>=40&&chars<=55){score+=15;good.push('✅ Ideal length (40-55 chars)');}
+  else if(chars>55&&chars<=70){score+=7;tips.push('⚠️ May be cut off on mobile — frontload key words');}
+  else if(chars<25){score-=8;tips.push('⚠️ Too short — may not trigger enough curiosity');}
+  else if(chars>70){score-=10;tips.push('❌ Too long — restructure to frontload the hook');}
+  if(/\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.test(lower)){score+=10;good.push('✅ Contains a number — specificity lifts CTR');}
+  else{tips.push('💡 A specific number boosts CTR ("5 Ways" vs "Ways")');}
+  var loopW=['reveals','secrets','nobody','hidden','truth','wrong','mistake','stop','avoid','shocking'];
+  if(loopW.some(function(w){return lower.includes(w);})){score+=12;good.push('✅ Opens a curiosity loop');}
+  else{tips.push('💡 Add a curiosity hook — "reveals", "the truth", "nobody talks about"');}
+  var found=POWER.filter(function(w){return lower.includes(w);});
+  if(found.length){score+=10;good.push('✅ Power word: "'+found[0]+'"');}
+  if(found.length>3){score-=5;tips.push('⚠️ Too many power words — pick your strongest');}
+  if(/\b(how|why|what|when|who|which|can|should|will|does|is|are)\b/i.test(lower)||t.includes('?')){score+=8;good.push('✅ Question format creates curiosity');}
+  if(/[(\[{]/.test(t)){score+=8;good.push('✅ Brackets consistently lift CTR');}
+  else{tips.push('💡 Add brackets — e.g. "(Proven Method)" or "(This Surprised Me)"');}
+  if(/202[4-9]/.test(t)){score+=5;good.push('✅ Year signals freshness');}
+  if(/\b[A-Z]{3,}\b/.test(t)){score+=5;good.push('✅ CAPS word adds visual emphasis');}
+  if(['save','earn','lose','gain','grow','build','get more'].some(function(w){return lower.includes(w);})){score+=8;good.push('✅ Benefit-driven framing');}
+  score=Math.max(5,Math.min(100,score));
+  var badge=document.getElementById('tbar-score');
+  if(badge){badge.textContent=score+'/100';badge.className='tbar-score '+(score>=70?'high':score>=50?'mid':'low');}
+  document.getElementById('tbar-title').textContent=t;
+  document.getElementById('ctr-score-num').textContent=score;
+  var bar=document.getElementById('ctr-score-bar');
+  bar.style.width='0%';
+  setTimeout(function(){bar.style.width=score+'%';bar.style.background=score>=75?'#F5C518':score>=50?'#F97316':'#EF4444';},150);
+  var label=score>=80?'🟡 HIGH CTR POTENTIAL':score>=60?'🟠 ABOVE AVERAGE':score>=40?'⚪ AVERAGE — needs a stronger hook':'🔴 LOW — rework the structure';
+  var text=[label,''].concat(good).concat(tips.length?[''].concat(tips):[]).concat(['','TIP: If CTR is low in first 24hrs — change the title.']).join('\n');
+  showCard('ctr-out','ctr-empty','ctr-copy',text);
+  // Auto-regenerate script outline with the typed/picked title
+  genScript(t);
+  // Also regenerate Title Ideas based on the typed title
+  genTitles(t);
+}
+
+// --- TITLE VARIATIONS --------------------------------------------------------
+function genTitles(title){
+  // main-title is now a keyword - use it directly
+  var T = cap(title.replace(/[!?()\[\]""'']/g,'').trim());
+
+  // Random fillers
+  var tfs   = ['30 Days','2 Weeks','7 Days','One Month'];
+  var pains = ['Without Strict Dieting','Without Hours at the Gym','Without Supplements','Without the Guesswork'];
+  var tf    = tfs[Math.floor(Math.random()*tfs.length)];
+  var pain  = pains[Math.floor(Math.random()*pains.length)];
+
+  // Frameworks from PDFs + user's power framework
+  var pool = shuffle([
+    'How to Make ' + T + ' 5x Easier',
+    'How to Achieve ' + T + ' in ' + tf + ' — ' + pain,
+    '7 Hidden ' + T + ' Facts Nobody Is Talking About',
+    'How Some People Mastered ' + T + ' While Others Still Struggle',
+    '5 Common ' + T + ' Mistakes That Are Keeping You Stuck',
+    'Science PROVES You\'ve Been Thinking About ' + T + ' All Wrong',
+    'Avoid These ' + T + ' Mistakes At ALL Costs',
+    T + ' Is the One Skill You Need to See Real Results',
+    '7 Signs You Already Understand ' + T + ' Better Than Most People',
+    'The Quick Guide to ' + T,
+    'I Tested ' + T + ' for 30 Days — Here\'s Exactly What Happened',
+    '10 Signs Your ' + T + ' Is Actually Working',
+    '3 ' + T + ' Secrets That Feel Like CHEATING',
+    'Proof That ' + T + ' Can Change Your Life in ' + tf,
+    'Everything You Know About ' + T + ' Is Wrong — Here\'s Why',
+    'The Beginner\'s Guide to ' + T + ' That Nobody Makes',
+  ]);
+
+  var finalPool = pool.slice(0,8);
+
+  document.getElementById('titles-empty').style.display='none';
+  var wrap=document.getElementById('title-chips-wrap');
+  wrap.style.display='block'; wrap.innerHTML='';
+  var hint=document.createElement('p');
+  hint.style.cssText='font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-bottom:8px;';
+  hint.textContent='Tap any title to score it in the CTR card ↑';
+  wrap.appendChild(hint);
+  finalPool.forEach(function(v,i){
+    var btn=document.createElement('button');
+    btn.className='title-chip';
+    btn.innerHTML='<span class="title-chip-num">'+(i+1)+'.</span>'+v;
+    btn.onclick=function(){
+      document.querySelectorAll('.title-chip').forEach(function(c){c.classList.remove('picked');});
+      btn.classList.add('picked');
+      document.getElementById('ctr-live-input').value=v;
+      rescoreLive();
+      // Also regenerate script outline with the selected title
+      genScript(v);
+    };
+    wrap.appendChild(btn);
+  });
+  document.getElementById('titles-copy').style.display='flex';
+  document.getElementById('titles-hidden').textContent=finalPool.map(function(v,i){return (i+1)+'. '+v;}).join('\n\n')+'\n\n(Hit ↻ refresh for new variations)';
+}
+
+// --- TAGS --------------------------------------------------------------------
+function genTags(keyword){
+  var kw = keyword.toLowerCase().trim();
+  var words = kw.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(function(w){ return w.length > 0; });
+  var tagSet = new Set();
+
+  // Modifiers pool — large enough to always hit 25
+  var mods = [
+    'tips','tutorial','guide','how to','best','2025','for beginners','explained',
+    'step by step','mistakes','secrets','tricks','fast','easy','free','advanced',
+    'complete guide','101','results','that work','at home','for weight loss',
+    'diet','workout','plan','routine','for women','for men','science','facts'
+  ];
+
+  // 1. Exact keyword
+  tagSet.add(kw);
+
+  // 2. How to + keyword
+  tagSet.add('how to '+kw);
+
+  // 3. Best + keyword
+  tagSet.add('best '+kw);
+
+  // 4. Keyword + every modifier
+  mods.forEach(function(m){ tagSet.add(kw+' '+m); });
+
+  // 5. Individual words + modifiers
+  words.forEach(function(w){
+    mods.forEach(function(m){ tagSet.add(w+' '+m); });
+    tagSet.add('how to '+w);
+    tagSet.add('best '+w);
+    tagSet.add(w+' guide');
+    tagSet.add(w+' tips');
+  });
+
+  // 6. Word pairs
+  for(var i=0; i<words.length-1; i++){
+    tagSet.add(words[i]+' '+words[i+1]);
+    mods.forEach(function(m){ tagSet.add(words[i]+' '+words[i+1]+' '+m); });
+  }
+
+  // Always exactly 25
+  var all = shuffle(Array.from(tagSet));
+  var finalTags = all.slice(0, 25);
+
+  document.getElementById('tags-empty').style.display='none';
+  document.getElementById('tags-copied').style.display='none';
+  var wrap = document.getElementById('tags-chips-wrap');
+  wrap.style.display = 'block';
+  var container = document.getElementById('tags-chips');
+  container.innerHTML = '';
+  finalTags.forEach(function(tag){
+    var chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = tag;
+    chip.onclick = function(){ chip.classList.toggle('sel'); };
+    container.appendChild(chip);
+  });
+}
+function genScript(passedTitle){
+  // Always use the actual generated/selected title from the CTR input.
+  // Fall back to passedTitle only if the CTR input is empty.
+  var ctrInput = document.getElementById('ctr-live-input');
+  var title = (ctrInput && ctrInput.value.trim() && ctrInput.value.trim().indexOf(' ') !== -1)
+    ? ctrInput.value.trim()
+    : passedTitle;
+
+  var lower=title.toLowerCase();
+  var isStory=/i tried|i tested|i failed|my journey|how i/.test(lower);
+  var isList=/\d+|top|best|ways|tips|mistakes|things|reasons/.test(lower);
+  var sections;
+  if(isStory){
+    sections=[
+      {n:'HOOK — Drop Into the Action',t:'Start at the most dramatic moment. Don\'t start at the beginning.'},
+      {n:'CONTEXT + STAKES',t:'What is this about? What\'s at risk?'},
+      {n:'THE JOURNEY — Part 1',t:'Setup. Early attempts. Show the initial struggle.'},
+      {n:'CONFLICT / TWIST',t:'"BUT THEN..." — the complication. Dance: context → conflict → context → conflict.'},
+      {n:'RESOLUTION + LESSON',t:'How did it resolve? Be honest. What did you actually learn?'},
+      {n:'OUTRO — The Last Dab',t:'One memorable final line. Quick CTA. End HIGH, not slow.'},
+    ];
+  } else if(isList){
+    sections=[
+      {n:'HOOK — Tease #1 Item',t:'Mention the best item is at the end. This is your open loop.'},
+      {n:'INTRO — Why This List Matters',t:'Click-confirm the title. Why now? Why you?'},
+      {n:'ITEMS 5–3 — Good to Great',t:'Start with 2nd best point — NOT your best. Value rises. Each: Context → Example → Why it matters.'},
+      {n:'ITEM 2 — Strong Contender',t:'Tease that #1 is even better. Build anticipation.'},
+      {n:'ITEM 1 — THE WINNER / Payoff',t:'Close the open loop. Make it worth the wait.'},
+      {n:'OUTRO',t:'Summary + CTA. End high-energy.'},
+    ];
+  } else {
+    sections=[
+      {n:'HOOK — Click Confirmation',t:'Immediately confirm the title promise. Beat their expectation right away.'},
+      {n:'INTRO — Common Belief + Contrarian Take',t:'State what most believe. Introduce your unique angle. Open the curiosity loop.'},
+      {n:'PROOF — Why Trust You',t:'Quick credibility. Keep it brief — 20-30 seconds max.'},
+      {n:'BODY POINT 1 — Your 2nd Best Tip',t:'START with 2nd best — trains viewers value is rising. Format: Context → Application → Framing.'},
+      {n:'BODY POINT 2 — Your Best Tip / Climax',t:'Now deliver your #1 insight. The peak. Should feel like a genuine revelation.'},
+      {n:'BODY POINT 3+ — Supporting Points',t:'Re-hook between sections. Use BUT/THEREFORE — not AND THEN.'},
+      {n:'OUTRO — Fortune Cookie',t:'Remind them reality beat expectations. End HIGH. Quick CTA last.'},
+    ];
+  }
+  var lines=['"'+title+'"','-'.repeat(42),''];
+  sections.forEach(function(s,i){lines.push((i+1)+'. '+s.n);lines.push('   → '+s.t);lines.push('');});
+  lines.push('-'.repeat(42));
+  lines.push('RULES: BUT/THEREFORE between sections — not AND THEN');
+  lines.push('2nd best point FIRST — save #1 for the climax');
+  var text=lines.join('\n');
+  showCard('script-out','script-empty','script-copy',text);
+  document.getElementById('prompt-panel').style.display='block';
+  updatePromptPreview();
+}
+
+// --- TAGS --------------------------------------------------------------------
+
+// --- SCRIPT PROMPT ------------------------------------------------------------
+function buildPrompt(){
+  var title=document.getElementById('main-title').value.trim()||'my video';
+  var outline=document.getElementById('script-out').textContent.trim();
+  var words=parseInt(document.getElementById('word-slider').value);
+  return 'Before writing anything, research the topic of this video thoroughly.\n\nVIDEO TITLE: "'+title+'"\n\nRESEARCH PHASE (do this first before writing a single word of the script):\n- Search for the most current, accurate, and interesting information on this topic\n- Find specific facts, statistics, studies, or real examples that would make the script credible and compelling\n- Identify the most common misconceptions or mistakes people make on this topic\n- Note any surprising or counterintuitive angles that most people don\'t know about\n- Use your findings to make the script feel authoritative and genuinely useful — not generic\n\nOnce research is complete, write the script using the outline below.\n\nTARGET LENGTH: Approximately '+words.toLocaleString()+' words (do not exceed this).\n\nSCRIPT OUTLINE TO FOLLOW:\n'+outline+'\n\nSCRIPT WRITING INSTRUCTIONS:\n- Write in a conversational, natural spoken tone — like talking to one close friend\n- Use short sentences and varied sentence lengths to create rhythm\n- Use BUT/THEREFORE between sections — not AND THEN\n- Start with the hook immediately — no slow intro or "hey guys welcome back"\n- Put the 2nd best point first in the body, build to the best point as the climax\n- Re-hook the viewer between each section\n- Weave in specific facts or examples from your research naturally throughout\n- End on a high note — memorable final line, then quick CTA\n- Write every line on its own line (easier to read on a teleprompter)\n- Do not include stage directions or [brackets] — just the spoken words\n\nResearch first, then write the full script:';
+}
+function updatePromptPreview(){
+  var words=parseInt(document.getElementById('word-slider').value);
+  document.getElementById('word-count-display').textContent=words.toLocaleString();
+  if(document.getElementById('script-out').textContent.trim()){
+    document.getElementById('prompt-preview').textContent=buildPrompt().substring(0,300)+'...\n[Full prompt ready to copy]';
+  }
+}
+function copyPrompt(btn){
+  var prompt=buildPrompt();
+  if(!document.getElementById('script-out').textContent.trim()){alert('Generate your video first.');return;}
+  doRawCopy(prompt,btn);
+  btn.textContent='✓ Prompt Copied! Paste into Claude or ChatGPT';
+  btn.classList.add('ok');
+  setTimeout(function(){btn.textContent='📋 Copy Prompt — paste into Claude or ChatGPT';btn.classList.remove('ok');},2500);
+}
+
+// --- DROPDOWN NAV -------------------------------------------------------------
+function toggleDropdown() {
+  var menu = document.getElementById('dropdown-menu');
+  var btn  = document.getElementById('dropdown-trigger');
+  var open = menu.classList.contains('show');
+  menu.classList.toggle('show', !open);
+  btn.classList.toggle('open', !open);
+}
+
+// Close dropdown if clicking outside
+document.addEventListener('click', function(e){
+  if(!e.target.closest('#nav-dropdown')) {
+    document.getElementById('dropdown-menu').classList.remove('show');
+    document.getElementById('dropdown-trigger').classList.remove('open');
+  }
+});
+
+function switchTab(tab, itemEl, label) {
+  // Hide all panels
+  document.getElementById('tool-panel').style.display   = 'none';
+  document.getElementById('howto-panel').classList.remove('show');
+  document.getElementById('howto-panel').style.display  = 'none';
+  document.getElementById('faq-panel').style.display    = 'none';
+
+  // Show selected panel
+  if(tab === 'tool')  document.getElementById('tool-panel').style.display  = '';
+  if(tab === 'howto'){ document.getElementById('howto-panel').style.display = 'block'; document.getElementById('howto-panel').classList.add('show'); }
+  if(tab === 'faq')   document.getElementById('faq-panel').style.display   = 'block';
+
+  // Update active state on dropdown items
+  document.querySelectorAll('.dropdown-item').forEach(function(i){ i.classList.remove('active'); });
+  if(itemEl) itemEl.classList.add('active');
+
+  // Update dropdown button label
+  if(label) document.getElementById('dropdown-label').textContent = label;
+
+  // Close dropdown
+  document.getElementById('dropdown-menu').classList.remove('show');
+  document.getElementById('dropdown-trigger').classList.remove('open');
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// --- FAQ TOGGLE ---------------------------------------------------------------
+function toggleFaq(el) {
+  var item = el.parentElement;
+  var wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.ht-faq-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!wasOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
