@@ -101,7 +101,7 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 .status-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
 
 /* ── MAIN LAYOUT ──────────────────────────────── */
-.main{max-width:1180px;margin:0 auto;padding:0 28px 80px;position:relative;z-index:1;}
+.main{max-width:1180px;margin:0 auto;padding:0 28px 60px;position:relative;z-index:1;}
 
 /* ── TITLE BAR ────────────────────────────────── */
 .title-bar{background:var(--card);border:1px solid rgba(255,255,255,0.5);border-radius:10px;padding:13px 18px;margin-bottom:28px;display:flex;align-items:center;gap:12px;margin-top:8px;}
@@ -213,7 +213,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--purp
 textarea.wc-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;resize:vertical;outline:none;min-height:90px;transition:border-color .2s;}
 textarea.wc-input:focus{border-color:var(--purple);}
 
-footer{border-top:1px solid var(--border);padding:24px 28px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+footer{border-top:1px solid var(--border);padding:14px 28px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);background:#000000;position:relative;z-index:10;}
 footer strong{color:var(--purple);}
 
 @media(max-width:600px){
@@ -268,7 +268,7 @@ footer strong{color:var(--purple);}
 }
 
 /* HOW TO USE TAB PANEL */
-#howto-panel{display:none;max-width:1180px;margin:0 auto;padding:28px 28px 80px;}
+#howto-panel{display:none;max-width:1180px;margin:0 auto;padding:28px 28px 60px;}
 #howto-panel.show{display:block;}
 
 /* Step layout */
@@ -345,9 +345,6 @@ footer strong{color:var(--purple);}
 </head>
 <body>
 
-<!-- Full-page particle canvas — fixed, behind everything -->
-<canvas id="page-particles" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
-
 <!-- HEADER -->
 <header>
   <div class="logo" onclick="resetHome()" style="cursor:pointer;">
@@ -370,7 +367,10 @@ footer strong{color:var(--purple);}
 </header>
 
 <!-- TOOL PANEL -->
-<div id="tool-panel">
+<div id="tool-panel" style="position:relative;">
+
+<!-- Particle canvas — home tab only, behind all content -->
+<canvas id="page-particles" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
 
 <!-- HERO -->
 <section class="hero">
@@ -398,7 +398,10 @@ footer strong{color:var(--purple);}
   </div>
 </section>
 
-<!-- MAIN CONTENT -->
+<!-- Divider line between hero and body -->
+<div style="display:flex;justify-content:center;position:relative;z-index:2;">
+  <div style="width:40%;height:1px;background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 25%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.55) 75%, transparent 100%);border-radius:2px;"></div>
+</div>
 <div class="main">
 
 
@@ -780,7 +783,7 @@ footer strong{color:var(--purple);}
 </div><!-- /howto-panel -->
 
 <!-- FAQ PANEL -->
-<div id="faq-panel" style="display:none;max-width:860px;margin:0 auto;padding:32px 28px 80px;">
+<div id="faq-panel" style="display:none;max-width:860px;margin:0 auto;padding:32px 28px 60px;">
   <div class="ht-section-label" style="margin-top:0;">
     <div class="ht-section-num">?</div>
     <div class="ht-section-name">Frequently asked questions</div>
@@ -822,6 +825,7 @@ footer strong{color:var(--purple);}
   </div>
 </div><!-- /faq-panel -->
 
+<div style="position:relative;z-index:9;height:120px;background:linear-gradient(to bottom, transparent, #000000);pointer-events:none;margin-top:-120px;"></div>
 <footer>
   <strong>VidSlayer</strong> &nbsp;&middot;&nbsp; Free YouTube Creator Toolkit &nbsp;&middot;&nbsp; No API key &middot; No sign-up &middot; No cost &nbsp;&middot;&nbsp; <a href="privacy-policy.html" style="color:var(--muted);text-decoration:none;">Privacy Policy</a>
 </footer>
@@ -1557,9 +1561,25 @@ function switchTab(tab, itemEl, label) {
   document.getElementById('faq-panel').style.display    = 'none';
 
   // Show selected panel
-  if(tab === 'tool')  document.getElementById('tool-panel').style.display  = '';
-  if(tab === 'howto'){ document.getElementById('howto-panel').style.display = 'block'; document.getElementById('howto-panel').classList.add('show'); }
-  if(tab === 'faq')   document.getElementById('faq-panel').style.display   = 'block';
+  if(tab === 'tool')  { document.getElementById('tool-panel').style.display  = ''; document.getElementById('page-particles').style.display = ''; }
+  if(tab === 'howto'){ document.getElementById('howto-panel').style.display = 'block'; document.getElementById('howto-panel').classList.add('show'); document.getElementById('page-particles').style.display = 'none'; }
+  if(tab === 'faq')  { document.getElementById('faq-panel').style.display   = 'block'; document.getElementById('page-particles').style.display = 'none'; }
+
+  // Fix footer to bottom only on FAQ tab
+  var footer = document.querySelector('footer');
+  if(footer){
+    if(tab === 'faq'){
+      footer.style.position = 'fixed';
+      footer.style.bottom   = '0';
+      footer.style.left     = '0';
+      footer.style.right    = '0';
+    } else {
+      footer.style.position = '';
+      footer.style.bottom   = '';
+      footer.style.left     = '';
+      footer.style.right    = '';
+    }
+  }
 
   // Update active state on dropdown items
   document.querySelectorAll('.dropdown-item').forEach(function(i){ i.classList.remove('active'); });
@@ -1593,7 +1613,9 @@ function toggleFaq(el) {
 
   function resize(){
     canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    var footer = document.querySelector('footer');
+    var footerH = footer ? footer.offsetHeight : 40;
+    canvas.height = window.innerHeight - footerH;
   }
 
   function Pt(startY){
@@ -1601,18 +1623,16 @@ function toggleFaq(el) {
   }
   Pt.prototype.init = function(startY){
     this.x  = Math.random() * canvas.width;
-    // startY: 'random' = anywhere, 'bottom' = from bottom, 'top' = from top
     if(startY === 'random'){
       this.y = Math.random() * canvas.height;
-    } else if(startY === 'top'){
-      this.y = Math.random() * 20;
     } else {
-      this.y = canvas.height + Math.random() * 20;
+      // Spawn exactly at the footer line (bottom of canvas)
+      this.y = canvas.height;
     }
     this.r  = Math.random() * 1.5 + 0.4;
     this.vx = (Math.random() - 0.5) * 0.3;
     this.vy = -(Math.random() * 0.5 + 0.15);
-    this.a  = 0;
+    this.a  = 0.5;
   };
   Pt.prototype.update = function(){
     this.x += this.vx;
