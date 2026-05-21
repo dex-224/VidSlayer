@@ -1403,7 +1403,10 @@ function genScript(passedTitle){
 
 // --- SCRIPT PROMPT ------------------------------------------------------------
 function buildPrompt(){
-  var title=document.getElementById('main-title').value.trim()||'my video';
+  var ctrInput = document.getElementById('ctr-live-input');
+  var title = (ctrInput && ctrInput.value.trim() && ctrInput.value.trim().indexOf(' ') !== -1)
+    ? ctrInput.value.trim()
+    : document.getElementById('main-title').value.trim() || 'my video';
   var outline=document.getElementById('script-out').textContent.trim();
   var words=parseInt(document.getElementById('word-slider').value);
   return 'Before writing anything, research the topic of this video thoroughly.\n\nVIDEO TITLE: "'+title+'"\n\nRESEARCH PHASE (do this first before writing a single word of the script):\n- Search for the most current, accurate, and interesting information on this topic\n- Find specific facts, statistics, studies, or real examples that would make the script credible and compelling\n- Identify the most common misconceptions or mistakes people make on this topic\n- Note any surprising or counterintuitive angles that most people don\'t know about\n- Use your findings to make the script feel authoritative and genuinely useful — not generic\n\nOnce research is complete, write the script using the outline below.\n\nTARGET LENGTH: Approximately '+words.toLocaleString()+' words (do not exceed this).\n\nSCRIPT OUTLINE TO FOLLOW:\n'+outline+'\n\nSCRIPT WRITING INSTRUCTIONS:\n- Write in a conversational, natural spoken tone — like talking to one close friend\n- Use short sentences and varied sentence lengths to create rhythm\n- Use BUT/THEREFORE between sections — not AND THEN\n- Start with the hook immediately — no slow intro or "hey guys welcome back"\n- Put the 2nd best point first in the body, build to the best point as the climax\n- Re-hook the viewer between each section\n- Weave in specific facts or examples from your research naturally throughout\n- End on a high note — memorable final line, then quick CTA\n- Write every line on its own line (easier to read on a teleprompter)\n- Do not include stage directions or [brackets] — just the spoken words\n\nResearch first, then write the full script:';
