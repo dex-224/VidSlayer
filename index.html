@@ -133,10 +133,10 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 .score-denom{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
 
 /* ── CTR INPUT ────────────────────────────────── */
-.ctr-input-row{display:flex;gap:8px;margin-bottom:12px;}
-.ctr-input-row input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:8px 11px;outline:none;transition:border-color .2s;}
-.ctr-input-row input:focus{border-color:var(--purple);}
-.ctr-input-row button{padding:8px 14px;background:var(--purple);color:white;border:none;border-radius:7px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.ctr-input-row{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.ctr-input-row textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;transition:border-color .2s;resize:none;min-height:56px;line-height:1.5;overflow:hidden;}
+.ctr-input-row textarea:focus{border-color:var(--purple);}
+.ctr-input-row button{padding:9px 14px;background:var(--purple);color:white;border:none;border-radius:7px;font-family:'Roboto',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;align-self:flex-end;}
 .ctr-input-row button:hover{opacity:.85;}
 
 /* ── TITLE CHIPS ──────────────────────────────── */
@@ -358,12 +358,6 @@ footer strong{color:var(--purple);}
 <!-- MAIN CONTENT -->
 <div class="main">
 
-  <!-- Title bar (hidden until generated) -->
-  <div class="title-bar" id="title-bar" style="display:none;">
-    <div class="tbar-label">Topic / Keyword</div>
-    <div class="tbar-title" id="tbar-title">–</div>
-    <div class="tbar-score" id="tbar-score"></div>
-  </div>
 
   <!-- ── SECTION 1: OPTIMIZATION ───────────────── -->
   <div class="section-label">
@@ -381,7 +375,7 @@ footer strong{color:var(--purple);}
       </div>
       <div class="card-body">
         <div class="ctr-input-row">
-          <input type="text" id="ctr-live-input" placeholder="Paste or type your full video title to score it..." oninput="debouncedRescore()">
+          <textarea id="ctr-live-input" placeholder="Paste or type your full video title to score it..." oninput="autoResizeCTR(this);debouncedRescore()" rows="2"></textarea>
           <button onclick="rescoreLive()">Score</button>
         </div>
         <div class="score-row">
@@ -882,7 +876,6 @@ function onTitleChange() {
       : keyword;
 
     // Update title bar
-    document.getElementById('tbar-title').textContent = keyword;
 
     // Always regenerate script outline with the picked/keyword title
     genScript(pickedTitle);
@@ -920,8 +913,6 @@ function generateFromScript(){
 
   // If we have a title (entered or extracted), regenerate all title-driven sections
   if (title) {
-    document.getElementById('tbar-title').textContent = title;
-    document.getElementById('title-bar').style.display = 'flex';
     var ctrInput = document.getElementById('ctr-live-input');
     if (ctrInput) ctrInput.value = title;
     genCTR(title);
@@ -1107,14 +1098,12 @@ function generateAll(){
   document.getElementById('status-bar').classList.add('show');
   document.getElementById('gen-btn').disabled=true;
   document.getElementById('gen-btn').textContent='Generating...';
-  setProgress(5,'Analyzing title...');
-  setTimeout(function(){genCTR(title);    setProgress(18,'Scoring CTR...');},100);
-  setTimeout(function(){genTitles(title); setProgress(36,'Building variations...');},300);
-  setTimeout(function(){genScript(title); setProgress(65,'Building outline...');},550);
-  setTimeout(function(){genTags(title);   setProgress(90,'Generating tags...');},800);
+  setProgress(5,'Analyzing keyword...');
+  setTimeout(function(){genTitles(title); setProgress(36,'Building title ideas...');},100);
+  setTimeout(function(){genScript(title); setProgress(65,'Building outline...');},400);
+  setTimeout(function(){genTags(title);   setProgress(90,'Generating tags...');},650);
   setTimeout(function(){
     setProgress(100,'Done!');
-    document.getElementById('title-bar').style.display='flex';
     document.getElementById('gen-btn').disabled=false;
     document.getElementById('gen-btn').textContent='Generate All ▶';
     setTimeout(function(){document.getElementById('status-bar').classList.remove('show');},600);
@@ -1122,16 +1111,23 @@ function generateAll(){
 }
 
 // --- CTR SCORE ----------------------------------------------------------------
-function genCTR(keyword){
+// ─── AUTO RESIZE CTR TEXTAREA ────────────────────────────────────────────────
+function autoResizeCTR(el) {
+  if(!el) return;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function genCTR(keyword, forceNew){
   var li = document.getElementById('ctr-live-input');
   var inputVal = li ? li.value.trim() : '';
 
   var title;
-  if(inputVal && inputVal.indexOf(' ') !== -1){
-    // User already has a real title typed - score that
+  if(!forceNew && inputVal && inputVal.indexOf(' ') !== -1){
+    // User has manually typed a real title — keep it
     title = inputVal;
   } else {
-    // Auto-generate a title from the keyword
+    // Always generate a fresh title from the new keyword
     var K = cap((keyword||'').replace(/[!?()\[\]""'']/g,'').trim());
     var starters = [
       '7 '+K+' Secrets Nobody Talks About',
@@ -1142,7 +1138,7 @@ function genCTR(keyword){
       'I Tested '+K+' for 30 Days — Here\'s What Happened',
     ];
     title = starters[Math.floor(Math.random()*starters.length)];
-    if(li) li.value = title;
+    if(li) { li.value = title; autoResizeCTR(li); }
   }
 
   var lower=title.toLowerCase(),chars=title.length,score=40,good=[],tips=[];
@@ -1166,10 +1162,6 @@ function genCTR(keyword){
   if(['save','earn','lose','gain','grow','build','get more'].some(function(w){return lower.includes(w);})){score+=8;good.push('✅ Benefit-driven framing');}
   score=Math.max(5,Math.min(100,score));
 
-  // Update score badge on title bar
-  var badge=document.getElementById('tbar-score');
-  if(badge){badge.textContent=score+'/100';badge.className='tbar-score '+(score>=70?'high':score>=50?'mid':'low');}
-  document.getElementById('tbar-title').textContent=title;
 
   document.getElementById('ctr-score-num').textContent=score;
   var bar=document.getElementById('ctr-score-bar');
@@ -1214,9 +1206,6 @@ function rescoreLive(){
   if(/\b[A-Z]{3,}\b/.test(t)){score+=5;good.push('✅ CAPS word adds visual emphasis');}
   if(['save','earn','lose','gain','grow','build','get more'].some(function(w){return lower.includes(w);})){score+=8;good.push('✅ Benefit-driven framing');}
   score=Math.max(5,Math.min(100,score));
-  var badge=document.getElementById('tbar-score');
-  if(badge){badge.textContent=score+'/100';badge.className='tbar-score '+(score>=70?'high':score>=50?'mid':'low');}
-  document.getElementById('tbar-title').textContent=t;
   document.getElementById('ctr-score-num').textContent=score;
   var bar=document.getElementById('ctr-score-bar');
   bar.style.width='0%';
@@ -1224,11 +1213,11 @@ function rescoreLive(){
   var label=score>=80?'🟡 HIGH CTR POTENTIAL':score>=60?'🟠 ABOVE AVERAGE':score>=40?'⚪ AVERAGE — needs a stronger hook':'🔴 LOW — rework the structure';
   var text=[label,''].concat(good).concat(tips.length?[''].concat(tips):[]).concat(['','TIP: If CTR is low in first 24hrs — change the title.']).join('\n');
   showCard('ctr-out','ctr-empty','ctr-copy',text);
-  // Auto-regenerate script outline with the typed/picked title
-  genScript(t);
-  // Also regenerate Title Ideas based on the typed title
-  genTitles(t);
+  // Keep script outline in sync — but skip if called from genTitles to avoid loop
+  if(!_genTitlesRunning) genScript(t);
 }
+
+var _genTitlesRunning = false;
 
 // --- TITLE VARIATIONS --------------------------------------------------------
 function genTitles(title){
@@ -1278,6 +1267,7 @@ function genTitles(title){
       document.querySelectorAll('.title-chip').forEach(function(c){c.classList.remove('picked');});
       btn.classList.add('picked');
       document.getElementById('ctr-live-input').value=v;
+      autoResizeCTR(document.getElementById('ctr-live-input'));
       rescoreLive();
       // Also regenerate script outline with the selected title
       genScript(v);
@@ -1286,6 +1276,19 @@ function genTitles(title){
   });
   document.getElementById('titles-copy').style.display='flex';
   document.getElementById('titles-hidden').textContent=finalPool.map(function(v,i){return (i+1)+'. '+v;}).join('\n\n')+'\n\n(Hit ↻ refresh for new variations)';
+
+  // Auto-load and score the first generated title in the CTR card
+  var li = document.getElementById('ctr-live-input');
+  if(li && finalPool.length > 0){
+    li.value = finalPool[0];
+    autoResizeCTR(li);
+    var firstChip = document.querySelector('.title-chip');
+    if(firstChip) firstChip.classList.add('picked');
+    // Score without triggering genTitles again
+    _genTitlesRunning = true;
+    rescoreLive();
+    _genTitlesRunning = false;
+  }
 }
 
 // --- TAGS --------------------------------------------------------------------
